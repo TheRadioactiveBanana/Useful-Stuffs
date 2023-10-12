@@ -16,7 +16,7 @@ public class Effects {
     // region at
 
     public static void at(Effect effect, float x, float y) {
-        Call.effect(effect, x, y, Mathf.random(360f), Tmp.c1.rand());
+        Call.effect(effect, x, y, Mathf.random(360f), Tmp.c1.fromHsv(Time.time % 360f, 1f, 1f).a(1f));
     }
 
     public static void at(Effect effect, float x, float y, Color color) {
@@ -24,7 +24,7 @@ public class Effects {
     }
 
     public static void at(Effect effect, float x, float y, float rotation) {
-        Call.effect(effect, x, y, rotation, Tmp.c1.rand());
+        Call.effect(effect, x, y, rotation, Tmp.c1.fromHsv(Time.time % 360f, 1f, 1f).a(1f));
     }
 
     public static void at(Effect effect, float x, float y, float rotation, Color color) {
@@ -32,7 +32,7 @@ public class Effects {
     }
 
     public static void at(Effect effect, Position position) {
-        Call.effect(effect, position.getX(), position.getY(), Mathf.random(360f), Tmp.c1.rand());
+        Call.effect(effect, position.getX(), position.getY(), Mathf.random(360f), Tmp.c1.fromHsv(Time.time % 360f, 1f, 1f).a(1f));
     }
 
     public static void at(Effect effect, Position position, Color color) {
@@ -40,7 +40,7 @@ public class Effects {
     }
 
     public static void at(Effect effect, Position position, float rotation) {
-        Call.effect(effect, position.getX(), position.getY(), rotation, Tmp.c1.rand());
+        Call.effect(effect, position.getX(), position.getY(), rotation, Tmp.c1.fromHsv(Time.time % 360f, 1f, 1f).a(1f));
     }
 
     public static void at(Effect effect, Position position, float rotation, Color color) {
@@ -51,7 +51,7 @@ public class Effects {
     // region at (with data)
 
     public static void at(Effect effect, float x, float y, Object data) {
-        Call.effect(effect, x, y, Mathf.random(360f), Tmp.c1.rand(), data);
+        Call.effect(effect, x, y, Mathf.random(360f), Tmp.c1.fromHsv(Time.time % 360f, 1f, 1f).a(1f), data);
     }
 
     public static void at(Effect effect, float x, float y, Color color, Object data) {
@@ -59,7 +59,7 @@ public class Effects {
     }
 
     public static void at(Effect effect, float x, float y, float rotation, Object data) {
-        Call.effect(effect, x, y, rotation, Tmp.c1.rand(), data);
+        Call.effect(effect, x, y, rotation, Tmp.c1.fromHsv(Time.time % 360f, 1f, 1f).a(1f), data);
     }
 
     public static void at(Effect effect, float x, float y, float rotation, Color color, Object data) {
@@ -67,7 +67,7 @@ public class Effects {
     }
 
     public static void at(Effect effect, Position position, Object data) {
-        Call.effect(effect, position.getX(), position.getY(), Mathf.random(360f), Tmp.c1.rand(), data);
+        Call.effect(effect, position.getX(), position.getY(), Mathf.random(360f), Tmp.c1.fromHsv(Time.time % 360f, 1f, 1f).a(1f), data);
     }
 
     public static void at(Effect effect, Position position, Color color, Object data) {
@@ -75,7 +75,7 @@ public class Effects {
     }
 
     public static void at(Effect effect, Position position, float rotation, Object data) {
-        Call.effect(effect, position.getX(), position.getY(), rotation, Tmp.c1.rand(), data);
+        Call.effect(effect, position.getX(), position.getY(), rotation, Tmp.c1.fromHsv(Time.time % 360f, 1f, 1f).a(1f), data);
     }
 
     public static void at(Effect effect, Position position, float rotation, Color color, Object data) {
@@ -325,38 +325,35 @@ public class Effects {
         }, delay, interval, repeat);
     }
 
-    public static void schedule(Player player, float interval, int repeat, Cons2<Player, Float> cons) {
-        schedule(player, 0f, interval, repeat, cons);
-    }
-
-    public static void schedule(Player player, float delay, float interval, int repeat, Cons2<Player, Float> cons) {
-        Timer.schedule(new Task() {
-            @Override
-            public void run() {
-                if (player == null || !player.con.isConnected()) {
-                    cancel();
-                    return;
-                }
-
-                cons.get(player, Time.time);
-            }
-        }, delay, interval, repeat);
-    }
-
     // endregion
     // region sequence
 
     public static void sequence(float delay, Runnable... values) {
         for (int i = 0; i < values.length; i++) {
-            var runnable = values[i];
-            Time.run(delay * i, runnable);
+            final int index = i;
+            Time.run(delay * i, () -> values[index].run());
         }
     }
 
-    public static void sequence(float delay, Floatc... values) {
+    public static void sequence(float delay, Intc... values) {
         for (int i = 0; i < values.length; i++) {
-            var cons = values[i];
-            Time.run(delay * i, () -> cons.get(Time.time));
+            final int index = i;
+            Time.run(delay * i, () -> values[index].get(index));
+        }
+    }
+
+    // endregion
+    // region repeat
+
+    public static void repeat(int repeat, float delay, Runnable runnable) {
+        for (int i = 0; i < repeat; i++)
+            Time.run(delay * i, runnable);
+    }
+
+    public static void repeat(int repeat, float delay, Intc cons) {
+        for (int i = 0; i < repeat; i++) {
+            final int index = i;
+            Time.run(delay * i, () -> cons.get(index));
         }
     }
 
@@ -364,7 +361,7 @@ public class Effects {
     // region stack
 
     public static void stack(float x, float y, Effect... values) {
-        stack(x, y, Tmp.c1.randHue(), values);
+        stack(x, y, Tmp.c1.fromHsv(Time.time % 360f, 1f, 1f).a(1f), values);
     }
 
     public static void stack(float x, float y, Color color, Effect... values) {
@@ -373,7 +370,7 @@ public class Effects {
     }
 
     public static void stack(float x, float y, float rotation, Effect... values) {
-        stack(x, y, rotation, Tmp.c1.randHue(), values);
+        stack(x, y, rotation, Tmp.c1.fromHsv(Time.time % 360f, 1f, 1f).a(1f), values);
     }
 
     public static void stack(float x, float y, float rotation, Color color, Effect... values) {
@@ -382,7 +379,7 @@ public class Effects {
     }
 
     public static void stack(Position position, Effect... values) {
-        stack(position, Tmp.c1.randHue(), values);
+        stack(position, Tmp.c1.fromHsv(Time.time % 360f, 1f, 1f).a(1f), values);
     }
 
     public static void stack(Position position, Color color, Effect... values) {
@@ -391,7 +388,7 @@ public class Effects {
     }
 
     public static void stack(Position position, float rotation, Effect... values) {
-        stack(position, rotation, Tmp.c1.randHue(), values);
+        stack(position, rotation, Tmp.c1.fromHsv(Time.time % 360f, 1f, 1f).a(1f), values);
     }
 
     public static void stack(Position position, float rotation, Color color, Effect... values) {
